@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ -e "/home/tik/.config/autostart/org.opensuse.tik.desktop" ]; then
+  # We are in the installer
+  exit 0
+fi
+
+
+# set new default session
+if [[ -f /var/lib/AccountsService/users/"$GDMUSER" ]]; then
+  sed -i "s|Session=.*|Session=gamescope-session-steam|g" /var/lib/AccountsService/users/"$GDMUSER"
+else
+  echo "[User]" > /var/lib/AccountsService/users/"$GDMUSER"
+  echo "Session=gamescope-session-steam" >> /var/lib/AccountsService/users/"$GDMUSER"
+fi
+
+# enable auto-login
+if [[ -f /etc/gdm/custom.conf ]]; then
+  sed -i "s|TimedLoginEnable=.*|TimedLoginEnable=true|g" /etc/gdm/custom.conf
+  sed -i "s|TimedLoginDelay=.*|TimedLoginDelay=1|g" /etc/gdm/custom.conf
+  sed -i "s|TimedLogin=.*|TimedLogin=$GDMUSER|g" /etc/gdm/custom.conf
+  if [[ -z $(grep -F "TimedLogin" /etc/gdm/custom.conf) ]]; then
+    sed -i "/\[daemon\]/a\TimedLoginEnable=true" /etc/gdm/custom.conf
+    sed -i "/TimedLoginEnable=true/a\TimedLoginDelay=1" /etc/gdm/custom.conf
+    sed -i "/TimedLoginDelay=1/a\TimedLogin=$GDMUSER" /etc/gdm/custom.conf
+  fi
+fi
