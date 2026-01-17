@@ -3,12 +3,7 @@ set -euo pipefail
 
 die() { echo "!! $*" >&2; exit 1; }
 
-is_mutter_running() { pgrep -f mutter >/dev/null 2>&1 || return 1; }
-is_gamescope_steam_running() { systemctl --user is-active --quiet gamescope-session-plus@steam.service; }
-
 ensure_dir() { mkdir -p "$1"; }
-
-LOCKFILE="/tmp/$(basename "$0").$UID.lock"
 
 # sentinel
 SENTINEL_FILE="steamos-session-select"
@@ -41,23 +36,13 @@ if [[ "${2:-}" != "--root" ]]; then
       | tr '\n' '\0' | xargs -0 -r rm -- || true
   fi
 
-  # Ask the current compositor/session to log out
-  is_mutter_running && gnome-session-quit --no-prompt || true
-  is_gamescope_steam_running && steam -shutdown || true
-
   # Re-run as root to update DM config
-  exec pkexec "$(realpath "$0")" "$session" --root "$USER"
+  pkexec "$(realpath "$0")" "$session" --root "$USER"
   exit 0
 fi
 
 [[ $EUID -eq 0 ]] || die "Internal error: root phase not running as root."
 [[ -n ${TARGET_USER:-} ]] || die "No target user provided."
-
-# locking
-cleanup() { rm -f "$LOCKFILE"; }
-exec 200>"$LOCKFILE"
-flock -n 200 || die "Another instance is already running."
-trap cleanup EXIT INT TERM HUP
 
 session_launcher=""
 case "$session" in
