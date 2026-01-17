@@ -79,24 +79,19 @@ if [[ -f /etc/sysconfig/displaymanager ]]; then
   sed -i "s|DISPLAYMANAGER_AUTOLOGIN=.*|DISPLAYMANAGER_AUTOLOGIN=\"$TARGET_USER\"|g" /etc/sysconfig/displaymanager
 fi
 
-# set new default session (Wayland Session=)
+# set to default session
 if [[ -f /var/lib/AccountsService/users/"$TARGET_USER" ]]; then
-  sed -i "s|Session=.*|Session=$session_launcher|g" /var/lib/AccountsService/users/"$TARGET_USER"
+  sed -i "s|Session=.*|Session=default|g" /var/lib/AccountsService/users/"$TARGET_USER"
 else
   echo "[User]" > /var/lib/AccountsService/users/"$TARGET_USER"
-  echo "Session=$session_launcher" >> /var/lib/AccountsService/users/"$TARGET_USER"
+  echo "Session=default" >> /var/lib/AccountsService/users/"$TARGET_USER"
 fi
 
-# enable auto-login (timedlogin)
-if [[ -f /etc/gdm/custom.conf ]]; then
-  sed -i "s|TimedLoginEnable=.*|TimedLoginEnable=true|g" /etc/gdm/custom.conf
-  sed -i "s|TimedLoginDelay=.*|TimedLoginDelay=1|g" /etc/gdm/custom.conf
-  sed -i "s|TimedLogin=.*|TimedLogin=$TARGET_USER|g" /etc/gdm/custom.conf
-  if [[ -z $(grep -F "TimedLogin" /etc/gdm/custom.conf) ]]; then
-    sed -i "/\[daemon\]/a\TimedLoginEnable=true" /etc/gdm/custom.conf
-    sed -i "/TimedLoginEnable=true/a\TimedLoginDelay=1" /etc/gdm/custom.conf
-    sed -i "/TimedLoginDelay=1/a\TimedLogin=$TARGET_USER" /etc/gdm/custom.conf
-  fi
+# Set default session
+if [[ -f /usr/share/wayland-sessions/"$session_launcher".desktop ]]; then
+  ln -sf /usr/share/wayland-sessions/"$session_launcher".desktop /etc/alternatives/default-waylandsession.desktop
 fi
 
 echo "Done. Session set to '$session_launcher' for '$TARGET_USER'."
+
+systemctl restart gdm

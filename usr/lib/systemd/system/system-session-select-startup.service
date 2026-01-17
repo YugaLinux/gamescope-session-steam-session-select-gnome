@@ -8,4 +8,4 @@ Type=oneshot
 ExecStart=/usr/libexec/gamescope-session-steam/system-startup-gamescope
 
 [Install]
-RequiredBy=gdm.service
+RequiredBy=graphical.target

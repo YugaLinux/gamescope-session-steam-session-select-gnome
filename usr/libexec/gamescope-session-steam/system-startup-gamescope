@@ -9,22 +9,15 @@ if [[ -f /etc/sysconfig/displaymanager ]]; then
   sed -i "s|DISPLAYMANAGER_AUTOLOGIN=.*|DISPLAYMANAGER_AUTOLOGIN=\"deck\"|g" /etc/sysconfig/displaymanager
 fi
 
-# set new default session
+# set to default session
 if [[ -f /var/lib/AccountsService/users/deck ]]; then
-  sed -i "s|Session=.*|Session=gamescope-session-steam|g" /var/lib/AccountsService/users/deck
+  sed -i "s|Session=.*|Session=default|g" /var/lib/AccountsService/users/deck
 else
   echo "[User]" > /var/lib/AccountsService/users/deck
-  echo "Session=gamescope-session-steam" >> /var/lib/AccountsService/users/deck
+  echo "Session=default" >> /var/lib/AccountsService/users/deck
 fi
 
-# enable auto-login
-if [[ -f /etc/gdm/custom.conf ]]; then
-  sed -i "s|TimedLoginEnable=.*|TimedLoginEnable=true|g" /etc/gdm/custom.conf
-  sed -i "s|TimedLoginDelay=.*|TimedLoginDelay=1|g" /etc/gdm/custom.conf
-  sed -i "s|TimedLogin=.*|TimedLogin=deck|g" /etc/gdm/custom.conf
-  if [[ -z $(grep -F "TimedLogin" /etc/gdm/custom.conf) ]]; then
-    sed -i "/\[daemon\]/a\TimedLoginEnable=true" /etc/gdm/custom.conf
-    sed -i "/TimedLoginEnable=true/a\TimedLoginDelay=1" /etc/gdm/custom.conf
-    sed -i "/TimedLoginDelay=1/a\TimedLogin=deck" /etc/gdm/custom.conf
-  fi
+# Set default session
+if [[ -f /usr/share/wayland-sessions/gamescope-session-steam.desktop ]]; then
+  ln -sf /usr/share/wayland-sessions/gamescope-session-steam.desktop /etc/alternatives/default-waylandsession.desktop
 fi
